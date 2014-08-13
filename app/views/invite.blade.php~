@@ -1,0 +1,12 @@
+<html>
+<head>
+<title>invite</title>
+</head>
+<body>
+{{ Form::open(array('url' => 'invite')) }}
+{{ Form::label('mobile', 'mobile') }}
+{{ Form::text('mobile') }}
+{{ Form::submit('Click Me!') }}
+{{ Form::close() }}
+</body>
+</html>

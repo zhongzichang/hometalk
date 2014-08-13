@@ -1,0 +1,38 @@
+<?php
+
+
+class InvitationController extends BaseController {
+
+    public function getIndex(){
+        return View::make('invite');
+    }
+    
+
+    public function postIndex(){
+
+        $invitorId = Auth::id();
+        $inviteeId = Input::get('invitee_id');
+        $groupId = Input::get('group_id');
+        $greeting = Input::get('greeting');
+        $relationType = Input::get('relation_type');
+        $nickname = Input::get('nickname');
+        
+        $invitation = new Invitation();
+        $invitation->invitor_id = $invitorId;
+        $invitation->invitee_id = $inviteeId;
+        $invitation->group_id = $groupId;
+        $invitation->greeting = $greeting;
+        $invitation->relation_type = $relationType;
+        $invitation->nickname = $nickname;
+        $invitation->save();
+
+        return 'Invited OK.';
+
+    }
+
+
+
+    public function delete(){
+    }
+
+}
