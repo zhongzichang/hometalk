@@ -47,6 +47,18 @@ class MessageController extends \BaseController {
             $m->res_type = $res_type;
             $m->group_id = $group_id;
             $m->save();
+
+            $entryData = array(
+                'group_id' => $group_id,
+                'res_uuid' => $res_uuid,
+                'res_type' => $res_type,
+                'from_id' => $from_id
+            );
+            $context = new ZMQContext();
+            $socket = $context->getSocket(ZMQ::SOCKET_PUSH, 'my pusher');
+            $socket->connect("tcp://localhost:5555");
+            $socket->send(json_encode($entryData));
+
             return Response::json(array('success'=>true));
         } else {
             return Response::json(array('success'=>false));
