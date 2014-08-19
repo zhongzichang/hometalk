@@ -9,7 +9,7 @@ use Ratchet\WebSocket\WsServer;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Zzc\Chat\ChatInterface;
-use Zzc\Chat\UserInterface;
+use Zzc\Chat\ClientInterface;
 
 class Serve extends Command
 {
@@ -17,39 +17,39 @@ class Serve extends Command
     protected $description = "Command description.";
     protected $chat;
 
-    protected function getUserName($user)
+    protected function getClientName($client)
     {
-        $suffix = " (" . $user->getId() . ")";
-        if ($name = $user->getName())
+        $suffix = " (" . $client->getId() . ")";
+        if ($name = $client->getName())
             {
                 return $name . $suffix;
             }
-        return "User" . $suffix;
+        return "Client" . $suffix;
     }
 
     public function __construct(ChatInterface $chat)
     {
         parent::__construct();
         $this->chat = $chat;
-        $open = function(UserInterface $user)
+        $open = function(ClientInterface $client)
             {
-                $name = $this->getUserName($user);
+                $name = $this->getClientName($client);
                 $this->line("
                 <info>" . $name . " connected.</info>
             ");
             };
         $this->chat->getEmitter()->on("open", $open);
-        $close = function(UserInterface $user)
+        $close = function(ClientInterface $client)
             {
-                $name = $this->getUserName($user);
+                $name = $this->getClientName($client);
                 $this->line("
                 <info>" . $name . " disconnected.</info>
             ");
             };
         $this->chat->getEmitter()->on("close", $close);
-        $message = function(UserInterface $user, $message)
+        $message = function(ClientInterface $client, $message)
             {
-                $name = $this->getUserName($user);
+                $name = $this->getClientName($client);
                 $this->line("
                 <info>New message from " . $name . ":</info> 
                 <comment>" . $message . "</comment>
@@ -57,20 +57,20 @@ class Serve extends Command
             ");
             };
         $this->chat->getEmitter()->on("message", $message);
-        $name = function(UserInterface $user, $message)
+        $name = function(ClientInterface $client, $message)
             {
                 $this->line("
-                <info>User changed their name to:</info> 
+                <info>Client changed their name to:</info> 
                 <comment>" . $message . "</comment>
                 <info>.</info>
             ");
             };
         $this->chat->getEmitter()->on("name", $name);
-        $error = function(UserInterface $user, $exception)
+        $error = function(ClientInterface $client, $exception)
             {
                 $message = $exception->getMessage();
                 $this->line("
-                <info>User encountered an exception:</info> 
+                <info>Client encountered an exception:</info> 
                 <comment>" . $message . "</comment>
                 <info>.</info>
             ");

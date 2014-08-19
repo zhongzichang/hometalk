@@ -1,11 +1,9 @@
 var App = Ember.Application.create();
 
 App.Router.map(function() {
-
     this.resource("index", {
         "path" : "/"
     });
-
 });
 
 App.Message = DS.Model.extend({
@@ -49,93 +47,66 @@ App.IndexRoute = Ember.Route.extend({
 });
 
 App.IndexController = Ember.ArrayController.extend({
-
     "command" : null,
-
     "actions" : {
-
         "send" : function(key) {
-
             if (key && key != 13) {
                 return;
             }
-
             var command = this.get("command") || "";
-
             if (command.indexOf("/") === 0) {
-
 		spaceIndex = command.indexOf(" ");
 		if( spaceIndex > 1 ){
 		    name = command.substring(1, spaceIndex);
 		    data = null;
 		    if( spaceIndex < command.length-1 ){
 			data = command.substring(spaceIndex+1, command.length);
+			try {
+			    data = eval('('+data+')');
+			} catch(e){}
 		    }
                     socket.send(JSON.stringify({
 			"type" : name,
 			"data" : data
                     }));
 		}
-
             } else {
-
                 socket.send(JSON.stringify({
                     "type" : "message",
                     "data" : command
                 }));
-
             }
-
             this.set("command", null);
         }
-
     }
-
 });
 
 App.IndexView = Ember.View.extend({
-
     "keyDown" : function(e) {
         this.get("controller").send("send", e.keyCode);
     }
-
 });
 
 try {
-
     var id = 1;
-
     if (!WebSocket) {
-
         console.log("no websocket support");
-
     } else {
-
         var socket = new WebSocket("ws://115.28.229.143:7778/");
         var id     = 1;
-
         socket.addEventListener("open", function (e) {
             console.log("open: ", e);
         });
-
         socket.addEventListener("error", function (e) {
             console.log("error: ", e);
         });
-
         socket.addEventListener("message", function (e) {
-
             var data = JSON.parse(e.data);
-
             switch (data.message.type) {
-
             case "name":
-
-                $(".name-" + data.user.id).html(data.user.name);
-
+                $(".name-" + data.user.id).html(data.user.username);
                 break;
-
             case "message":
-
                 store.push("message", {
                     "id"            : id++,
                     "user_id"       : data.user.id,
@@ -143,21 +114,15 @@ try {
                     "user_id_class" : "name-" + data.user.id,
                     "message"       : data.message.data
                 });
-
                 break;
-
+	    default:
+		console.log(e.data);
+		break;
             }
-
         });
-
         console.log("socket:", socket);
-
         window.socket = socket; // debug
-
     }
-
 } catch (e) {
-
     console.log("exception: " + e);
-
 }

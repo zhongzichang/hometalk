@@ -3,22 +3,18 @@
 namespace Zzc\Chat\Controller;
 
 use Illuminate\Support\Facades\Hash;
+use Zzc\Chat\Cache;
 use Zzc\Chat\Model\User;
 
 class AuthController
 {
-    /*
-    public function test(){
-        return json_encode(array('test'=>'test'));
-        }*/
 
     public function test($client, $data){
-        return json_encode(array('test'=>'test'));
+        return array('test'=>'test');
     }
 
     public function login($client, $data )
     {
-
         $username = $data->username;
         $password = $data->password;
 
@@ -26,13 +22,12 @@ class AuthController
         if( $user != null ){
             $hashedPassword = $user->password;
             if (Hash::check($password, $hashedPassword)) {
-                // The passwords match...
-                return json_encode(array('success'=>true));
+                $client->setUser($user);
+                Cache::$loginedClients[$user->id] = $client;
+                return array('success'=>true);
             }
         }
-
-        return json_encode(array('success'=>false));
-        
+        return array('success'=>false);
     }
     
 }

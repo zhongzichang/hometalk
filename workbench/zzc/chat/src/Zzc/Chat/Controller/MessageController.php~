@@ -5,9 +5,14 @@ namespace Zzc\Chat\Controller;
 use Illuminate\Support\Facades\Hash;
 use Zzc\Chat\Model\User;
 
-class AuthenController
+class AuthController
 {
-    public static function login($client, $data )
+
+    public function test($client, $data){
+        return array('test'=>'test');
+    }
+
+    public function login($client, $data )
     {
 
         $username = $data->username;
@@ -17,13 +22,11 @@ class AuthenController
         if( $user != null ){
             $hashedPassword = $user->password;
             if (Hash::check($password, $hashedPassword)) {
-                // The passwords match...
+                $client->setUser($user);
                 return json_encode(array('success'=>true));
             }
         }
-
-        return json_encode(array('success'=>false));
-        
+        return ['success'=>false];
     }
     
 }

@@ -6,7 +6,7 @@ use Evenement\EventEmitterInterface;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 
-interface UserInterface
+interface ClientInterface
 {
     public function getSocket();
     public function setSocket(ConnectionInterface $socket);

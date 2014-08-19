@@ -8,8 +8,8 @@ use Ratchet\MessageComponentInterface;
 
 interface ChatInterface extends MessageComponentInterface
 {
-    public function getUserBySocket(ConnectionInterface $socket);
+    public function getClientBySocket(ConnectionInterface $socket);
     public function getEmitter();
     public function setEmitter(EventEmitterInterface $emitter);
-    public function getUsers();
+    public function getClients();
 }

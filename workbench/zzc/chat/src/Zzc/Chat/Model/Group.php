@@ -1,6 +1,9 @@
 <?php
 namespace Zzc\Chat\Model;
-class Group extends Eloquent {
+
+use Illuminate\Database\Eloquent\Model;
+
+class Group extends Model {
 
     public function members()
     {

@@ -9,14 +9,17 @@ use Zzc\Chat\Controller\AuthController;
 
 class Chat implements ChatInterface
 {
-    protected $users;
+
+
+    protected $clients;
     protected $emitter;
     protected $id = 1;
     protected $routes;
+
     
-    public function getUserBySocket(ConnectionInterface $socket)
+    public function getClientBySocket(ConnectionInterface $socket)
     {
-        foreach ($this->users as $next)
+        foreach ($this->clients as $next)
             {
                 if ($next->getSocket() === $socket)
                     {
@@ -36,25 +39,25 @@ class Chat implements ChatInterface
         $this->emitter = $emitter;
     }
 
-    public function getUsers()
+    public function getClients()
     {
-        return $this->users;
+        return $this->clients;
     }
 
     public function __construct(EventEmitterInterface $emitter)
     {
         $this->emitter = $emitter;
-        $this->users   = new SplObjectStorage();
+        $this->clients   = new SplObjectStorage();
         $this->routes  = include 'route.php';
     }
 
     public function onOpen(ConnectionInterface $socket)
     {
-        $user = new User();
-        $user->setId($this->id++);
-        $user->setSocket($socket);
-        $this->users->attach($user);
-        $this->emitter->emit("open", [$user]);
+        $client = new Client();
+        $client->setId($this->id++);
+        $client->setSocket($socket);
+        $this->clients->attach($client);
+        $this->emitter->emit("open", [$client]);
     }
 
     public function onMessage(
@@ -63,65 +66,46 @@ class Chat implements ChatInterface
     )
     {
 
-        $user = $this->getUserBySocket($socket);
-        $message = json_decode($message);
+        $client = $this->getClientBySocket($socket);
+        $this->emitter->emit("message", [$client, $message]);
 
-        // test
-        //$result = AuthController::login('test','123456');
-        //$this->emitter->emit("message",[$user, $result]);
+        $message = json_decode($message);
         if( array_key_exists($message->type, $this->routes) ){
             $method = $this->routes[$message->type];
-            if( $method ){
-                $result = call_user_func($method, $user, $message->data);
-                $this->emitter->emit("message",[$user, $result]);
+            if( is_callable($method) ){
+                $result = $method($client, $message->data);
                 if( $result ) {
-                    $user->getSocket()->send($result);
+                    $response = json_encode(
+                        [
+                            'client'=>['id'=>0,'name'=>'System'],
+                            'message'=> ['type'=>'result', 'data'=>$result]
+                        ]);
+                    $client->getSocket()->send( $response );
                 }
             }
         }
 
-        switch ($message->type)
-            {
-            case "name":
-            {
-                $user->setName($message->data);
-                $this->emitter->emit("name", [
-                    $user,
-                    $message->data
-                ]);
-                break;
-            }
-            case "message":
-            {
-                $this->emitter->emit("message", [
-                    $user,
-                    $message->data
-                ]);
-                break;
-            }
-            }  
-        foreach ($this->users as $next)
-            {
-                if ($next !== $user)
-                    {
-                        $next->getSocket()->send(json_encode([
-                            "user" => [
-                                "id"   => $user->getId(),
-                                "name" => $user->getName()
-                            ],
-                            "message" => $message
-                        ]));
-                    }
-            }
+        switch ($message->type) {
+        case "name":
+        {
+            $client->setName($message->data);
+            $this->emitter->emit("name", [
+                $client,
+                $message->data
+            ]);
+            //$this->broadcast($client, $message);
+            break;
+        }
+        }
     }
 
     public function onClose(ConnectionInterface $socket)
     {
-        $user = $this->getUserBySocket($socket);
-        if ($user)
+        $client = $this->getClientBySocket($socket);
+        if ($client)
             {
-                $this->users->detach($user);
-                $this->emitter->emit("close", [$user]);
+                $this->clients->detach($client);
+                $this->emitter->emit("close", [$client]);
             }
     }
 
@@ -130,12 +114,26 @@ class Chat implements ChatInterface
         Exception $exception
     )
     {
-        $user = $this->getUserBySocket($socket);
-        if ($user)
+        $client = $this->getClientBySocket($socket);
+        if ($client)
             {
-                $user->getSocket()->close();
-                $this->emitter->emit("error", [$user, $exception]);
+                $client->getSocket()->close();
+                $this->emitter->emit("error", [$client, $exception]);
             }
+    }
+
+    private function broadcast($sender, $message){
+        foreach ($this->clients as $next) {
+            if ($next !== $sender) {
+                $next->getSocket()->send(json_encode([
+                    "client" => [
+                        "id"   => $sender->getId(),
+                        "name" => $sender->getName()
+                    ],
+                    "message" => $message
+                ]));
+            }
+        }
     }
 
 }

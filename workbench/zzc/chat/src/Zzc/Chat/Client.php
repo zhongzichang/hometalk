@@ -3,11 +3,12 @@ namespace Zzc\Chat;
 
 use Ratchet\ConnectionInterface;
 
-class User implements UserInterface
+class Client implements ClientInterface
 {
     protected $socket;
     protected $id;
     protected $name;
+    protected $user;
 
     public function getSocket()
     {
@@ -39,6 +40,16 @@ class User implements UserInterface
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
+    }
+
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    public function setUser($user){
+        $this->user = $user;
         return $this;
     }
 }

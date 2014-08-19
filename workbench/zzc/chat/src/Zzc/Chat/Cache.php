@@ -2,6 +2,8 @@
 
 namespace Zzc\Chat;
 
+
 class Cache {
-    public static $groupTable = array();
+    public static $loginedClients = array();
 }
+
