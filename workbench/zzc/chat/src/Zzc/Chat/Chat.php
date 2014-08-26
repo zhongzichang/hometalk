@@ -93,7 +93,6 @@ class Chat implements ChatInterface
                 $client,
                 $message->data
             ]);
-            //$this->broadcast($client, $message);
             break;
         }
         }

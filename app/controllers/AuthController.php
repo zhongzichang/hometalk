@@ -17,12 +17,21 @@ class AuthController extends Controller {
         $password = Input::get('password');
 
         // remember me
-        if( Auth::attempt(array('mobile'=>$mobile, 'password'=>$password),'false')){
+        /*
+        if( Auth::attempt(array('mobile'=>$mobile, 'password'=>$password),'true')){
             // login successful
             return Redirect::intended('check');
         } else {
             return Redirect::route('login');
+            }*/
+
+        if( Auth::attempt(array('mobile'=>$mobile, 'password'=>$password),'true') ){
+            return Response::json(array('success'=>true));
+        } else {
+            return Response::json(array('success'=>false));
         }
+
+    
     }
 
 

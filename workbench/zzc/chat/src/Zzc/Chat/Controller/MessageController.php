@@ -25,7 +25,11 @@ class MessageController
             $group = Group::find($groupId);
             foreach($group->members as $member){
                 if( array_key_exists( $member->id, Cache::$loginedClients) ){
-                    Cache::$loginedClients[$member->id]->getSocket()->send(
+                    $targetClient = Cache::$loginedClients[$member->id];
+                    if($targetClient === $client){
+                        continue;
+                    }
+                    $targetClient->getSocket()->send(
                         json_encode([
                             "user" => [
                                 "id" => $user->id,
