@@ -65,36 +65,36 @@ class Chat implements ChatInterface
         $message
     )
     {
-
         $client = $this->getClientBySocket($socket);
         $this->emitter->emit("message", [$client, $message]);
-
         $message = json_decode($message);
-        if( array_key_exists($message->type, $this->routes) ){
-            $method = $this->routes[$message->type];
-            if( is_callable($method) ){
-                $result = $method($client, $message->data);
-                if( $result ) {
-                    $response = json_encode(
-                        [
-                            'client'=>['id'=>0,'name'=>'System'],
-                            'message'=> ['type'=>'result', 'data'=>$result]
-                        ]);
-                    $client->getSocket()->send( $response );
+        if($message != null){
+            if( array_key_exists($message->type, $this->routes) ){
+                $method = $this->routes[$message->type];
+                if( is_callable($method) ){
+                    $result = $method($client, $message->data);
+                    if( $result ) {
+                        $response = json_encode(
+                            [
+                                'client'=>['id'=>0,'name'=>'System'],
+                                'message'=> ['type'=>'result', 'data'=>$result]
+                            ]);
+                        $client->getSocket()->send( $response );
+                    }
                 }
             }
-        }
 
-        switch ($message->type) {
-        case "name":
-        {
-            $client->setName($message->data);
-            $this->emitter->emit("name", [
-                $client,
-                $message->data
-            ]);
-            break;
-        }
+            switch ($message->type) {
+            case "name":
+            {
+                $client->setName($message->data);
+                $this->emitter->emit("name", [
+                    $client,
+                    $message->data
+                ]);
+                break;
+            }
+            }
         }
     }
 
