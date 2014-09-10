@@ -41,7 +41,8 @@ Route::controller('invite', 'InvitationController');
 // families
 Route::controller('families', 'FamilyController');
 // groups
-Route::controller('groups', 'GroupController');
+Route::get('groups', 'GroupController@listMyGroups');
+Route::controller('group', 'GroupController');
 // talks
 Route::resource('talk','TalkController');
 // messages
